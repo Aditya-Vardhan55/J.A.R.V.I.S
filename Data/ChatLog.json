@@ -70,21 +70,5 @@
     {
         "role": "assistant",
         "content": "According to the search results, Elon Reeve Musk is a businessman known for his key roles in Tesla, SpaceX, PayPal, OpenAI, and Twitter. Since 2025, he has been a senior advisor to United States President Donald Trump. He is also the de facto head of the Department of Government."
-    },
-    {
-        "role": "user",
-        "content": "what is the stock price of apple."
-    },
-    {
-        "role": "assistant",
-        "content": "According to the search results, the current stock price of Apple (AAPL) is:\n\n* Open: $221.67\n* Prev Close: $223.85\n* Day's High: $223.81\n* Day's Low: $217.68\n\nPlease note that these prices may have changed since the last update, and I recommend checking a financial website or a reliable source for the most up-to-date information."
-    },
-    {
-        "role": "user",
-        "content": "what is the stock price of TATA"
-    },
-    {
-        "role": "assistant",
-        "content": "According to the search results, the current stock price of Tata Motors Limited is:\n\n* Open: 671.85\n* Previous Close: 668.55\n* Upper Circuit Limit (UC Limit): 735.40\n* Lower Circuit Limit (LC Limit): 601.70\n* Volume: 16,013,687\n* VWAP (Volume Weighted Average Price): 675.71\n* Market Capitalization (Mkt Cap): 248,288 Cr.\n\nPlease note that these prices may have changed since the last update, and I recommend checking a financial website or a reliable source for the most up-to-date information."
     }
 ]
