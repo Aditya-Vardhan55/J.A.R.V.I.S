@@ -86,7 +86,7 @@ class ChatSection(QWidget):
         self.setStyleSheet("background-color: black;")
         layout.setSizeConstraint(QVBoxLayout.SetDefaultConstraint)
         layout.setStretch(1, 1)
-        self.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Exapanding))
+        self.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
         text_color = QColor(Qt.blue)
         text_color_text = QTextCharFormat()
         text_color_text.setForeground(text_color)
@@ -186,11 +186,11 @@ class ChatSection(QWidget):
     def toggle_icon(self, event=None):
         
             if self.toggled:
-                self.load_icon(GraphicsDirectoryPath('voice.png'), 60, 60)
+                self.load_icon(GraphicsDirectoryPath('Mic_on.png'), 60, 60)
                 MicButtonInitialed()
             
             else:
-                self.load_icon(GraphicsDirectoryPath('mic.png'), 60, 60)
+                self.load_icon(GraphicsDirectoryPath('Mic_off.png'), 60, 60)
                 MicButtonClosed()
                 
             self.toggled = not self.toggled
