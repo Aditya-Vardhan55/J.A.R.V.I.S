@@ -107,10 +107,18 @@ def MainExecution():
             ImageExecution = True
             
     for queries in Decision:
-        if TaskExecution == False:
+        if not TaskExecution:
             if any(queries.startswith(func) for func in Functions):
-                run(Automation(list(Decision)))
-                TaskExecution = True
+                try:
+                    run(Automation(list(Decision)))
+                    TaskExecution = True
+                except Exception as e:
+                    print(f"Error executing task: {e}")
+                    SetAssistantStatus("Error...")
+                    ErrorMessage = "Sorry, I couldn't execute the requested task. Please try again or check the task details."
+                    ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
+                    TextToSpeech(ErrorMessage)
+                    return False
                 
     if ImageExecution == True:
         
