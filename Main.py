@@ -78,6 +78,47 @@ def InitialExecution():
     
 InitialExecution()
 
+def ChooseChromeProfile():
+    chrome_user_data_path = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data")
+    
+    if not os.path.exists(chrome_user_data_path):
+        ErrorMessage = "Chrome user data directory not found. Please ensure Chrome is installed."
+        ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
+        TextToSpeech(ErrorMessage)
+        return None
+    
+    profiles = [profile for profile in os.listdir(chrome_user_data_path) if os.path.isdir(os.path.join(chrome_user_data_path, profile))]
+    
+    if not profiles:
+        ErrorMessage = "No Chrome profiles found."
+        ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
+        TextToSpeech(ErrorMessage)
+        return None
+    
+    profile_message = "I found the following Chrome profiles: " + ", ".join(profiles) + ". Please choose one."
+    ShowTextToScreen(f"{Assistantname} : {profile_message}")
+    TextToSpeech(profile_message)
+    
+    for index, profile in enumerate(profiles, start=1):
+        print(f"{index}. {profile}")
+        
+    try:
+        choice = int(input("Enter the number corresponding to your choice: "))
+        if 1 <= choice <= len(profiles):
+            selected_profile = profiles[choice - 1]
+            return selected_profile
+        else:
+            ErrorMessage = "Invalid choice. Please try again."
+            ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
+            TextToSpeech(ErrorMessage)
+            return None
+    
+    except ValueError:
+        ErrorMessage = "Invalid input. Please enter a number."
+        ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
+        TextToSpeech(ErrorMessage)
+        return None
+                
 def MainExecution():
     
     TaskExecution = False
@@ -109,16 +150,32 @@ def MainExecution():
     for queries in Decision:
         if not TaskExecution:
             if any(queries.startswith(func) for func in Functions):
-                try:
-                    run(Automation(list(Decision)))
-                    TaskExecution = True
-                except Exception as e:
-                    print(f"Error executing task: {e}")
-                    SetAssistantStatus("Error...")
-                    ErrorMessage = "Sorry, I couldn't execute the requested task. Please try again or check the task details."
-                    ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
-                    TextToSpeech(ErrorMessage)
-                    return False
+                if "open chrome" in queries:
+                    selected_profile = ChooseChromeProfile()
+                    if selected_profile:
+                        chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+                        profile_path = os.path.join(os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data"), selected_profile)
+                        try:
+                            subprocess.Popen([chrome_path, f"--profile-directory={selected_profile}"])
+                            TaskExecution = True
+                        except Exception as e:
+                            print(f"Error opening Chrome with profile {selected_profile}: {e}")
+                            ErrorMessage = "Sorry, I couldn't open Chrome with the selected profile."
+                            ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
+                            TextToSpeech(ErrorMessage)
+                            return False
+                
+                else:
+                    try:
+                        run(Automation(list(Decision)))
+                        TaskExecution = True
+                    except Exception as e:
+                        print(f"Error executing task: {e}")
+                        SetAssistantStatus("Error...")
+                        ErrorMessage = "Sorry, I couldn't execute the requested task. Please try again or check the task details."
+                        ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
+                        TextToSpeech(ErrorMessage)
+                        return False
                 
     if ImageExecution == True:
         
