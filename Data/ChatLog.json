@@ -70,5 +70,53 @@
     {
         "role": "assistant",
         "content": "According to the search results, Elon Reeve Musk is a businessman known for his key roles in Tesla, SpaceX, PayPal, OpenAI, and Twitter. Since 2025, he has been a senior advisor to United States President Donald Trump. He is also the de facto head of the Department of Government."
+    },
+    {
+        "role": "user",
+        "content": "Good job javed."
+    },
+    {
+        "role": "assistant",
+        "content": "I think there's a small mistake! My name is Jarvis, not Javed. But thank you for the appreciation, Aditya Vardhan!"
+    },
+    {
+        "role": "user",
+        "content": "Can you pronounce lisa?"
+    },
+    {
+        "role": "assistant",
+        "content": "The pronunciation of \"Lisa\" is: LY-suh."
+    },
+    {
+        "role": "user",
+        "content": "You understanding what i am talking about like what am i saying to you?"
+    },
+    {
+        "role": "assistant",
+        "content": "I'm designed to understand the context and meaning behind your sentences. I can comprehend what you're saying to me, and I respond accordingly. I can grasp the nuances of language, including idioms, colloquialisms, and figurative language, to provide relevant and accurate responses."
+    },
+    {
+        "role": "user",
+        "content": "How are you doing today?"
+    },
+    {
+        "role": "assistant",
+        "content": "I'm doing great, thanks for asking! I'm a large language model, so I don't have emotions or feelings like humans do, but I'm always ready and happy to assist you with any questions or topics you'd like to discuss."
+    },
+    {
+        "role": "user",
+        "content": "Are you able to help me with coding."
+    },
+    {
+        "role": "assistant",
+        "content": "I can help with coding to some extent. I can provide syntax, examples, and explanations for various programming languages, including Python, Java, JavaScript, and more. I can also assist with debugging and troubleshooting code issues. However, please note that I'm a text-based AI and not a code editor, so I won't be able to execute or run code for you. But I can definitely help with coding-related questions and topics!"
+    },
+    {
+        "role": "user",
+        "content": "Okay, bye."
+    },
+    {
+        "role": "assistant",
+        "content": "It was nice chatting with you, Aditya Vardhan! Have a great day and feel free to reach out if you need anything else. Bye!"
     }
 ]
