@@ -44,16 +44,19 @@ def Content(Topic):
         
     def ContentWriterAI(prompt):
         messages.append({"role": "user", "content": f"{prompt}"})
-        
-        completion = client.chat.completions.create(
-            model="mixtral-8x7b-32768",
-            messages=SystemChatBot + messages,
-            max_tokens=2048,
-            temperature=0.7,
-            top_p=1,
-            stream=True,
-            stop=None
-        )
+        try:
+            completion = client.chat.completions.create(
+                model="llama-3.2-90b-vision-preview",
+                messages=SystemChatBot + messages,
+                max_tokens=2048,
+                temperature=0.7,
+                top_p=1,
+                stream=True,
+                stop=None
+            )
+        except Exception as e:
+            print(f"Error in ContentWriterAI: {e}")
+            return "Error generating content. Please try again later."
         
         Answer = ""
         
@@ -61,19 +64,27 @@ def Content(Topic):
             if chunk.choices[0].delta.content:
                 Answer += chunk.choices[0].delta.content
                 
-            Answer = Answer.replace("</s>", "")
-            messages.append({"role": "assistant", "content": Answer})
-            return Answer
+        Answer = Answer.replace("</s>", "").strip()
+        if "think" in Answer.lower():
+            Answer = Answer.split("\n\n", 1)[-1]
+            
+        messages.append({"role": "assistant", "content": Answer})
+        return Answer
         
-        Topic: str = Topic.replace("Content ", "")
+    Topic = Topic.replace("Content ", "").strip()
+    try:
         ContentByAI = ContentWriterAI(Topic)
         
-        with open(rf"Data\{Topic.lower().replace(' ','')}.txt", "w", encoding="utf-8") as file:
+        file_path = rf"Data\{Topic.lower().replace(' ', '')}.txt"
+        os.makedirs("Data", exist_ok=True)
+        with open(file_path, "w", encoding="utf-8") as file:
             file.write(ContentByAI)
-            file.close()
             
-        OpenNotepad(rf"Data\{Topic.lower().replace(' ','')}.txt")
+        OpenNotepad(file_path)
         return True
+    except Exception as e:
+        print(f"Error in Content function: {e}")
+        return False
     
 def YouTubeSearch(Topic):
     Url4Search = f"https://www.youtube.com/results?search_query={Topic}"
