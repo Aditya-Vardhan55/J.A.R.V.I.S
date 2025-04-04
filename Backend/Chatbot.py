@@ -2,6 +2,7 @@ from groq import Groq
 from json import load, dump
 import datetime
 from dotenv import dotenv_values
+import threading
 
 env_vars = dotenv_values(".env")
 
@@ -23,12 +24,16 @@ SystemChatBot = [
     {"role": "system", "content": System}
 ]
 
-try:
-    with open(r"Data\ChatLog.json", "r") as f:
-        messages = load(f)
-except FileNotFoundError:
+def load_chat_history():
+    try:
+        with open(r"Data\ChatLog.json", "r") as f:
+            return load(f)
+    except (FileNotFoundError, ValueError):
+        return []
+    
+def save_chat_history(messages):
     with open(r"Data\ChatLog.json", "w") as f:
-        dump([], f)
+        dump(messages[-50:], f, indent=4)
         
 def RealtimeInformation():
     current_date_time = datetime.datetime.now()
@@ -46,20 +51,14 @@ def RealtimeInformation():
     return data
 
 def AnswerModifier(Answer):
-    lines = Answer.split('\n')
-    non_empty_lines = [line for line in lines if line.strip()]
-    modified_answer = '\n'.join(non_empty_lines)
-    return modified_answer
+    return '\n'.join([line for line in Answer.split('\n') if line.strip()])
 
 def ChatBot(Query):
     """ This function sends the user's query to the chatbot and return the AI's response. """
+    messages = load_chat_history()
+    messages.append({"role": "user", "content": Query})
     
-    try:
-        with open(r"Data\ChatLog.json", "r") as f:
-            messages = load(f)
-            
-        messages.append({"role": "user", "content": f"{Query}"})
-        
+    try: 
         completion = client.chat.completions.create(
             model="llama3-70b-8192",
             messages=SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + messages,
@@ -79,17 +78,16 @@ def ChatBot(Query):
         Answer = Answer.replace("</s>", "")
         
         messages.append({"role": "assistant", "content": Answer})
-        
-        with open(r"Data\ChatLog.json", "w") as f:
-            dump(messages, f, indent=4)
-            
+        save_chat_history(messages)
         return AnswerModifier(Answer=Answer)
     
     except Exception as e:
         print(f"Error: {e}")
-        with open(r"Data\ChatLog.json", "w") as f:
-            dump([], f, indent=4)
-        return ChatBot(Query)
+        return "Sorry, I encountered an error processing your request."
+    
+def async_chatbot(Query, callback):
+    thread = threading.Thread(target=lambda: callback(ChatBot(Query)))
+    thread.start()
     
 if __name__ == "__main__":
     while True:
