@@ -6,6 +6,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 from dotenv import dotenv_values
 import os
 import mtranslate as mt
+import time
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 env_vars = dotenv_values(".env")
 
@@ -25,8 +29,8 @@ HtmlCode = '''<!DOCTYPE html>
         let recognition;
 
         function startRecognition() {
-            recognition = new webkitSpeechRecognition() || new SpeechRecognition();
-            recognition.lang = '';
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "{InputLanguage}";
             recognition.continuous = true;
 
             recognition.onresult = function(event) {
@@ -34,14 +38,13 @@ HtmlCode = '''<!DOCTYPE html>
                 output.textContent += transcript;
             };
 
-            recognition.onend = function() {
-                recognition.start();
-            };
             recognition.start();
         }
 
         function stopRecognition() {
-            recognition.stop();
+            if (recognition) {
+                recognition.stop();
+            }
             output.innerHTML = "";
         }
     </script>
@@ -50,19 +53,17 @@ HtmlCode = '''<!DOCTYPE html>
 
 HtmlCode = str(HtmlCode).replace("recognition.lang = '';", f"recognition.lang = '{InputLanguage}';")
 
-with open(r"Data\Voice.html", "w") as f:
+voice_html_path = os.path.join("Data", "Voice.html")
+with open(voice_html_path, "w", encoding="utf-8") as f:
     f.write(HtmlCode)
     
 current_dir = os.getcwd()
 
-Link = f"{current_dir}/Data/Voice.html"
-
 chrome_options = Options()
-user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.142.86 Safari/537.36"
-chrome_options.add_argument(f'user-agent={user_agent}')
-chrome_options.add_argument("--use-fake-ui-for-media-stream")
-chrome_options.add_argument("--use-fake-device-for-media-stream")
 chrome_options.add_argument("--headless=new")
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--log-level=3")
+chrome_options.add_argument("--use-fake-ui-for-media-stream")
 
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -95,27 +96,32 @@ def UniversalTranslator(Text):
     english_translation = mt.translate(Text, "en", "auto")
     return english_translation.capitalize()
 
-def SpeechRecognition():
+def SpeechRecognition(timeout=10):
+    """Captures speech input, translates it, and returns recognized text."""
+    driver.get("file:///" + os.path.abspath(voice_html_path))
+    driver.find_element(By.ID, "start").click()
+    start_time = time.time()
     
-    driver.get("file:///" + Link)
-    driver.find_element(by=By.ID, value="start").click()
-    
-    while True:
+    while time.time() - start_time < timeout:
         try:
-            Text = driver.find_element(by=By.ID, value="output").text
+            Text = driver.find_element(By.ID, "output").text.strip()
             
             if Text:
-                driver.find_element(by=By.ID, value="end").click()
-                
+                driver.find_element(By.ID, "end").click()
                 if InputLanguage.lower() == "en" or "en" in InputLanguage.lower():
                     return QueryModifier(Text)
                 else:
                     SetAssistantStatus("Translating...")
-                    return QueryModifier(UniversalTranslator(Text))
+                    translated = UniversalTranslator(Text)
+                    return QueryModifier(translated)
                 
         except Exception as e:
-            pass
+            logging.error(f"Speech recognition error: {e}")
+        time.sleep(0.5)
         
+    logging.warning("Speech recognition timed out.")
+    return ""
+
 if __name__ == "__main__":
     while True:
         Text = SpeechRecognition()
