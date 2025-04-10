@@ -47,6 +47,7 @@ Logging & Memory Update: Saves new facts or conversations if configured.
 ## Installation & Usage 🏗️
 ### 1️⃣ Clone the Repository
 git clone https://github.com/Aditya-Vardhan55/JARVIS-AI-Assistant.git
+
 cd JARVIS-AI-Assistant
 ### 2️⃣ Set Up Environment Variables
 Create a .env file with the following:
