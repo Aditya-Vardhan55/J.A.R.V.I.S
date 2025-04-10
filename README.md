@@ -46,18 +46,26 @@ Voice Output: Converts reply into speech using selected voice engine.
 Logging & Memory Update: Saves new facts or conversations if configured.
 ## Installation & Usage 🏗️
 ### 1️⃣ Clone the Repository
-git clone https://github.com/Aditya-Vardhan55/JARVIS-AI-Assistant.git
+git clone [https://github.com/Aditya-Vardhan55/J.A.R.V.I.S.git](https://github.com/Aditya-Vardhan55/J.A.R.V.I.S)
 
-cd JARVIS-AI-Assistant
+cd J.A.R.V.I.S
 ### 2️⃣ Set Up Environment Variables
 Create a .env file with the following:
+
 CohereAPIKey=your_key
+
 GroqAPIKey=your_key
+
 HuggingFaceAPIKey=your_key
+
 Username=Aditya Vardhan
+
 Assistantname=Jarvis
+
 InputLanguage=en
+
 AssistantVoice=en-CA-LiamNeural
+
 ### 3️⃣ Install Dependencies
 pip install -r requirements.txt
 ### 4️⃣ Run the Assistant
