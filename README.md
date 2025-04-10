@@ -20,17 +20,17 @@ JARVIS is an intelligent personal AI assistant designed to simplify tasks, autom
 
 💾 Structured Memory Storage for dynamic learning
 ## Tech Stack 🛠️
-Python (core logic and backend)
+_Python_ (core logic and backend)
 
-FastAPI / Flask (API framework)
+_FastAPI / Flask_ (API framework)
 
-Langchain, Transformers, Groq SDK, Cohere, OpenAI API (AI/LLM integration)
+_Langchain, Transformers, Groq SDK, Cohere, OpenAI API_ (AI/LLM integration)
 
-SpeechRecognition, pyttsx3 / Azure TTS (voice input/output)
+_SpeechRecognition, pyttsx3 / Azure TTS_ (voice input/output)
 
-SQLite / JSON / Redis (for storing memory or logs)
+_SQLite / JSON / Redis_ (for storing memory or logs)
 
-Frontend (optional): Streamlit / React (for interface)
+_Frontend _(optional): _Streamlit / React_ (for interface)
 
 ## How It Works ⚙️
 User Interaction: Input through text or voice.
