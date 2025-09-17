@@ -46,7 +46,7 @@ def Content(Topic):
         messages.append({"role": "user", "content": f"{prompt}"})
         try:
             completion = client.chat.completions.create(
-                model="llama-3.2-90b-vision-preview",
+                model="meta-llama/llama-4-scout-17b-16e-instruct",
                 messages=SystemChatBot + messages,
                 max_tokens=2048,
                 temperature=0.7,
