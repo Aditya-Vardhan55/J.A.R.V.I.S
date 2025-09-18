@@ -30,6 +30,25 @@ DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
 subprocesses = []
 Functions = ["open", "close", "play", "system", "content", "google search", "youtube search"]
 
+def request_memory_retrieval(query):
+    """Writes a request to the memory manager to retrieve memories."""
+    with open(r"Frontend\Files\memory_request.data", "w") as f:
+        json.dump({"action": "retrieve", "payload": query}, f)
+        
+    sleep(1.5)
+    
+    with open(r"Frontend\Files\memory_response.data", "r") as f:
+        try:
+            memories = json.load(f)
+            return memories
+        except json.JSONDecodeError:
+            return []
+        
+def request_memory_storage(text_to_store):
+    """Writes a request to the memory manager to store a memory."""
+    with open(r"Frontend\Files\memory_request.data", "w") as f:
+        json.dump({"action": "store", "payload": text_to_store}, f)
+
 def clean_image_prompt(query):
     query_lower = query.lower().strip()
     trigger_phrases = [
@@ -105,7 +124,17 @@ def MainExecution():
     Query = SpeechRecognition()
     ShowTextToScreen(f"{Username} : {Query}")
     SetAssistantStatus("Thinking...")
-    Decision = FirstLayerDMM(Query)
+    
+    relevant_memories = request_memory_retrieval(Query)
+    print(f"Retrieved memories: {relevant_memories}")
+    
+    augmented_query = Query
+    if relevant_memories:
+        context = "\n".join(relevant_memories)
+        augmented_query = f"Here is some context from our past conversations:\n{context}\n\nNow, answer this question: {Query}"
+        
+    
+    Decision = FirstLayerDMM(augmented_query)
     
     print("")
     print(f"Decision : {Decision}")
@@ -165,6 +194,9 @@ def MainExecution():
         ShowTextToScreen(f"{Assistantname} : {Answer}")
         SetAssistantStatus("Answering...")
         TextToSpeech(Answer)
+        
+        summary_of_turn = f"User asked about '{Query}' and I responded about '{Answer}'."
+        request_memory_storage(summary_of_turn)
         return True
     
     else:
@@ -177,6 +209,9 @@ def MainExecution():
                 ShowTextToScreen(f"{Assistantname} : {Answer}")
                 SetAssistantStatus("Answering...")
                 TextToSpeech(Answer)
+                
+                summary_of_turn = f"User asked about '{Query}' and I responded about '{Answer}'."
+                request_memory_storage(summary_of_turn)
                 return True
             
             elif "realtime" in Queries:
@@ -186,6 +221,9 @@ def MainExecution():
                 ShowTextToScreen(f"{Assistantname} : {Answer}")
                 SetAssistantStatus("Answering...")
                 TextToSpeech(Answer)
+            
+                summary_of_turn = f"User asked about '{Query}' and I responded about '{Answer}'."
+                request_memory_storage(summary_of_turn)    
                 return True
             
             elif "exit" in Queries:
@@ -220,7 +258,12 @@ def SecondThread():
     GraphicalUserInterface()
     
 if __name__ == "__main__":
-    thread2 = threading.Thread(target=FirstThread, daemon=True)
-    thread2.start()
+    InitialExecution()
+    
+    subprocess.Popen(['python', r'Backend\MemoryManager.py'])
+    
+    thread1 = threading.Thread(target=FirstThread, daemon=True)
+    thread1.start()
+    
     SecondThread()
     
