@@ -30,6 +30,20 @@ DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
 subprocesses = []
 Functions = ["open", "close", "play", "system", "content", "google search", "youtube search"]
 
+def clean_image_prompt(query):
+    query_lower = query.lower().strip()
+    trigger_phrases = [
+        "generate image of", "create picture of", "make photo of",
+        "draw painting of", "show me picture of", "i want an image of",
+        "generate image", "generate picture", "generate photo",
+        "generate a", "image of", "picture of", "photo of", "generate "
+    ]
+    
+    for phrase in trigger_phrases:
+        if query_lower.startswith(phrase):
+            return query[len(phrase):].strip()
+    return None
+
 def ShowDefaultChatIfNoChats():
     File = open(r'Data\ChatLog.json', "r", encoding='utf-8')
     if len(File.read())<5:
@@ -40,9 +54,12 @@ def ShowDefaultChatIfNoChats():
             file.write(DefaultMessage)
             
 def ReadChatLogJson():
-    with open(r'Data\ChatLog.json', 'r', encoding='utf-8') as file:
-        chatlog_data = json.load(file)
-    return chatlog_data
+    try:
+        with open(r'Data\ChatLog.json', 'r', encoding='utf-8') as file:
+            chatlog_data = json.load(file)
+        return chatlog_data
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
 
 def ChatLogIntegration():
     json_data = ReadChatLogJson()
@@ -102,9 +119,11 @@ def MainExecution():
     )
     
     for queries in Decision:
-        if "generate " in queries:
-            ImageGenerationQuery = str(queries)
+        cleaned_prompt = clean_image_prompt(queries)
+        if cleaned_prompt:
+            ImageGenerationQuery = cleaned_prompt
             ImageExecution = True
+            break
             
     for queries in Decision:
         if not TaskExecution:
@@ -119,20 +138,25 @@ def MainExecution():
                         ShowTextToScreen(f"{Assistantname} : {ErrorMessage}")
                         TextToSpeech(ErrorMessage)
                         return False
-                
+    
     if ImageExecution == True:
+        prompt = ImageGenerationQuery
+        
+        feedback_message = f"Generating your image of {prompt}..."
+        ShowTextToScreen(f"{Assistantname} : {feedback_message}")
+        TextToSpeech(feedback_message)
         
         with open(r"Frontend\Files\ImageGeneration.data", "w") as file:
-            file.write(f"{ImageGenerationQuery},True")
+            file.write(f"{prompt},True")
             
         try:
-            p1 = subprocess.Popen(['python', r'Backend\ImageGeneration.py'],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                stdin=subprocess.PIPE, shell=False)
+            p1 = subprocess.Popen(['python', r'Backend\ImageGeneration.py'])
             subprocesses.append(p1)
-            
         except Exception as e:
             print(f"Error starting ImageGeneration.py: {e}")
+            SetAssistantStatus("Error...")
+            
+        return 
             
     if G and R or R:
         

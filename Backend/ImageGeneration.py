@@ -6,68 +6,85 @@ from dotenv import get_key
 import os
 from time import sleep
 
-def open_images(prompt):
-    folder_path = r"Data"
-    prompt = prompt.replace(" ", "_")
-    
-    Files = [f"{prompt}{i}.jpg" for i in range(1, 5)]
-    
-    for jpg_file in Files:
-        image_path = os.path.join(folder_path, jpg_file)
-        
-        try:
-            img = Image.open(image_path)
-            print(f"Opening image: {image_path}")
-            img.show()
-            sleep(1)
-            
-        except IOError:
-            print(f"Unable to open {image_path}")
-            
 API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 headers = {"Authorization": f"Bearer {get_key('.env', 'HuggingFaceAPIKey')}"}
 
-async def query(payload):
-    response = await asyncio.to_thread(requests.post, API_URL, headers=headers, json=payload)
-    return response.content
+async def query_api(payload):
+    """Sends a single request to the Hugging Face API."""
+    try:
+        response = await asyncio.to_thread(requests.post, API_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.content
+    except requests.exceptions.RequestException as e:
+        print(f"API request failed: {e}")
+        return None
 
 async def generate_images(prompt: str):
+    """Creates and runs tasks to generate 4 images based on the prompt."""
+    print(f"Starting generation for prompt: '{prompt}'")
     tasks = []
     
-    for _ in range(4):
+    for i in range(4):
         payload = {
-            "inputs": f"{prompt}, quality=4K, sharpness=maximum, Ultra High details, high resolution, seed = {randint(0, 1000000)}",
+            "inputs": f"{prompt}, 4k, high-resolution, photorealistic, seed={randint(0, 1000000)}",
         }
-        task = asyncio.create_task(query(payload))
-        tasks.append(task)
+        tasks.append(query_api(payload))
         
-        image_bytes_list = await asyncio.gather(*tasks)
-        
-        for i, image_bytes in enumerate(image_bytes_list):
-            with open(fr"Data\{prompt.replace(' ', '_')}{i + 1}.jpg", "wb") as f:
-                f.write(image_bytes)
-                
-def GenerateImages(prompt: str):
-    asyncio.run(generate_images(prompt))
-    open_images(prompt)
+    image_bytes_list = await asyncio.gather(*tasks)
     
-while True:
-    try:
-        with open(r"Frontend\Files\ImageGeneration.data", "r") as f:
-            Data: str = f.read()
+    saved_paths = []
+    for i, image_bytes in enumerate(image_bytes_list):
+        if image_bytes:
+            image_path = os.path.join("Data", f"{prompt.replace(' ', '_')}.{i + 1}.jpg")
+            try:
+                with open(image_path, "wb") as f:
+                    f.write(image_bytes)
+                print(f"Successfully saved {image_path}")
+                saved_paths.append(image_path)
+            except Exception as e:
+                print(f"Error saving image {i+1}: {e}")
+    
+    return saved_paths
+
+def open_images(image_paths):
+    """Opens a list of image files."""
+    print("Opening generated images...")
+    for path in image_paths:
+        try:
+            img = Image.open(path)
+            img.show()
+            sleep(1) 
+        except IOError:
+            print(f"Unable to open {path}")
+
+
+if __name__ == "__main__":
+    while True:
+        try:
+            with open(r"Frontend\Files\ImageGeneration.data", "r") as f:
+                data = f.read().strip()
             
-        Prompt, Status = Data.split(",")
-        
-        if Status == "True":
-            print("Generating Images...")
-            ImageStatus = GenerateImages(prompt=Prompt)
+            if data and ",True" in data:
+                prompt, _ = data.split(",", 1)
+                
+                generated_files = asyncio.run(generate_images(prompt=prompt))
+                
+                if generated_files:
+                    open_images(generated_files)
+                
+                with open(r"Frontend\Files\ImageGeneration.data", "w") as f:
+                    f.write("False,False")
+                
+                break 
             
+            else:
+                sleep(1) 
+
+        except FileNotFoundError:
+            print("Waiting for ImageGeneration.data file...")
+            sleep(2)
+        except Exception as e:
+            print(f"An error occurred: {e}")
             with open(r"Frontend\Files\ImageGeneration.data", "w") as f:
                 f.write("False,False")
-                break
-            
-        else:
-            sleep(1)
-            
-    except:
-        pass
+            break
