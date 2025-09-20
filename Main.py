@@ -216,11 +216,20 @@ def MainExecution():
             
             elif "realtime" in Queries:
                 SetAssistantStatus("Searching...")
-                QueryFinal = Queries.replace("realtime ","")
-                Answer = RealtimeSearchEngine(QueryModifier(QueryFinal))
-                ShowTextToScreen(f"{Assistantname} : {Answer}")
-                SetAssistantStatus("Answering...")
-                TextToSpeech(Answer)
+                try:
+                    QueryFinal = " ".join(Queries.split()[1:])
+                except:
+                    QueryFinal = ""
+                    
+                if QueryFinal:
+                    Answer = RealtimeSearchEngine(QueryModifier(QueryFinal))
+                    ShowTextToScreen(f"{Assistantname} : {Answer}")
+                    SetAssistantStatus("Answering...")
+                    TextToSpeech(Answer)
+                else:
+                    Answer = "Please provide a topic for me to search."
+                    ShowTextToScreen(f"{Assistantname}: {Answer}")
+                    TextToSpeech(Answer)
             
                 summary_of_turn = f"User asked about '{Query}' and I responded about '{Answer}'."
                 request_memory_storage(summary_of_turn)    
