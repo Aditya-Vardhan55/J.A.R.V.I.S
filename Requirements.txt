@@ -18,3 +18,5 @@ webdriver-manager
 chromadb
 sentence-transformers
 tavily-python
+flask
+flask-cors
