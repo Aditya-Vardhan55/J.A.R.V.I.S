@@ -33,6 +33,11 @@ def handle_query():
             response = "This feature is only available in the downloadable desktop application. It allows me to interact with your local system."
             return jsonify({"response": response})
         
+        is_image_task = any("generate image" in d for d in decision_list)
+        if is_image_task:
+            response = f"Image generation is an exclusive feature available only in the JARVIS desktop application. Please download the app to experience this and other advanced automation capabilities!"
+            return jsonify({"response": response})
+        
         is_realtime_task = any(d.startswith("realtime") for d in decision_list)
         if is_realtime_task:
             clean_query = " ".join(decision_list[0].split()[1:])
