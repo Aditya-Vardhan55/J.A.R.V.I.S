@@ -20,6 +20,7 @@ function App() {
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const chatBoxRef = useRef(null);
 
   useEffect(() => {
@@ -29,13 +30,17 @@ function App() {
   }, [messages, isLoading]);
 
   const speak = (text) => {
-    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
     window.speechSynthesis.speak(utterance);
   };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
 
     const userMessage = { sender: 'You', text: input, type: 'user' };
     setMessages(prev => [...prev, userMessage]);
@@ -78,9 +83,16 @@ function App() {
       recognition.stop();
       setIsListening(false);
     } else {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
       recognition.start();
       setIsListening(true);
     }
+  };
+
+  const handleStopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
   };
 
   if (recognition) {
@@ -95,11 +107,25 @@ function App() {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
     };
+
+    const IdleOrb = ({ isListening }) => (
+      <motion.div
+        className='idle-orb'
+        initial={{ scale: 0.8, opacity: 0}}
+        animate={{ scale: 1, opacity: 1}}
+        transition={{ duration: 1, repeat: Infinity, repeatType: 'reverse' }}
+        style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}
+      >
+        <div className='orb-glow'></div>
+        {isListening && <div className='sound-arcs'></div>}
+      </motion.div>
+    );
   }
   
   return (
     <div id="chat-container">
       <h1>J.A.R.V.I.S.</h1>
+      {!messages.length && <IdleOrb isListening={isListening} />}
       <div id="chat-box" ref={chatBoxRef}>
         {messages.map((msg, index) => (
           <motion.div
@@ -111,15 +137,28 @@ function App() {
           >
             <strong>{msg.sender}</strong>
             <p>{msg.text}</p>
+            {isSpeaking && msg.type === 'bot' && (
+              <svg className='speaking-wave' viewBox='0 0 100 20' style={{ width: '100%', height: '20px' }}>
+                <motion.path 
+                  d="M0 10 Q 25 0 50 10 T 100 10"
+                  stroke='#00d4ff'
+                  strokeWidth="2"
+                  fill="none"
+                  animate={{
+                    d: 'M0 10 Q${Math.random()*50} ${Math.random()*20} 50 10 T 100 10'
+                  }}
+                  transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut" }}
+                  />
+              </svg>
+            )}
           </motion.div>
         ))}
         {isLoading && (
-          <div className='message bot-message'>
+          <motion.div className='message bot-message' initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <strong>J.A.R.V.I.S.</strong>
-            <div className='loading-spinner'>
-              <div className='spinner'></div>
-            </div>
-          </div>
+            <div className='thinking-galaxy'></div>
+              {/* <div className='spinner'></div> */}
+          </motion.div>
         )}
       </div>
       <div id="input-container">
@@ -139,7 +178,12 @@ function App() {
           style={{ backgroundColor: isListening ? '#ff4d4d': '#007bff' }}
         >
           🎤
+        </button>
+        {isSpeaking && (
+          <button id='stop-btn' onClick={handleStopSpeaking} style={{backgroundColor: '#ff851b'}}>
+            ⏹️
           </button>
+        )}
         <button id="send-btn" onClick={handleSend} disabled={isLoading}>
           {isLoading ? '...' : 'Send'}
         </button>
